@@ -41,6 +41,10 @@ async def on_member_update(before, after):
 async def on_member_remove(member):
     await timezone_update(member.guild)
 
+@bot.command(help='Print bot invite link.')
+async def invite_link(ctx):
+    await ctx.send('<https://discord.com/api/oauth2/authorize?client_id=748726425917456406&permissions=523328&scope=bot>')
+
 @bot.command(aliases=['set_bd'],help='Set the birthday of a user to specified datetime given in their local time. Requires admin if member is not yourself. Example: ">set_bd @username april 1 13:37"')
 async def set_birthday(ctx, member: discord.Member=None, *, birthday_in_local_time):
     if member is None:
