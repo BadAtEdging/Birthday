@@ -41,21 +41,21 @@ async def on_member_update(before, after):
 async def on_member_remove(member):
     await timezone_update(member.guild)
 
-@bot.command(aliases=['set_bd'])
-async def set_birthday(ctx, member: discord.Member=None, *, birthday):
+@bot.command(aliases=['set_bd'],help='Set the birthday of a user to specified datetime given in their local time. Requires admin if member is not yourself. Example: ">set_bd @username april 1 13:37"')
+async def set_birthday(ctx, member: discord.Member=None, *, birthday_in_local_time):
     if member is None:
         member = ctx.author
     is_admin = ctx.author.guild_permissions.administrator
     if ctx.author != member and not is_admin:
         ctx.send("You need to be admin to change data of other people!")
         return
-    any_birthday_local = parser.parse(birthday)
+    any_birthday_local = parser.parse(birthday_in_local_time)
     await ctx.send(f'Setting birthday of <@{member.id}> as {any_birthday_local}')
     Data.set_elem(ctx.guild.id,member.id,'any_birthday_local',any_birthday_local)
     update_timestamp(ctx.guild.id,member.id)
 
 
-@bot.command(aliases=['list_bd'])
+@bot.command(aliases=['list_bd'],help='List the birthdays of all users, starting from the closest birthday.')
 async def list_birthdays(ctx):
     message = []
     message.append('** BIRTHDAYS: **')
@@ -65,7 +65,7 @@ async def list_birthdays(ctx):
         message.append(f'{member} on {birthday.date()} (in {time_until(birthday)})')
     await ctx.send('\n'.join(message))
 
-@bot.command()
+@bot.command(help='Delete all information of a member from database. Deletes your own information if username not specified. Requires admin if member is not yourself.')
 async def delete_member(ctx, member: discord.Member=None):
     if member is None:
         member = ctx.author
@@ -114,7 +114,7 @@ async def timezone_update(guild):
     for member in guild.members:
         update_timestamp(guild.id,member.id)
 
-@bot.command()
+@bot.command(help='Manually update verified and location roles, done automatically every hour. This command should be unnecessary, unless something goes wrong.')
 async def manual_timezone_update(ctx):
     await timezone_update(ctx.guild)
 
@@ -137,7 +137,7 @@ async def birthday_update_loop():
 
 
 
-@bot.command(aliases=['set_tz'])
+@bot.command(aliases=['set_tz'],help='Set the timezone of a member to specified value. If member is not given, changes your own timezone. Requires admin if member is not yourself.')
 async def set_timezone(ctx, timezone, member: discord.Member=None):
     if member is None:
         member = ctx.author
