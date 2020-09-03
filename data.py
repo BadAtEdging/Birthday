@@ -26,14 +26,34 @@ def create_tables():
                     any_birthday_local timestamp,
                     next_birthday_utc timestamp,
                     last_announced_utc timestamp,
+                    birthday_message text default 'Happy birthday, <@>!',
                     region text,
                     timezone text,
                     is_verified integer default 0,
                     primary key (guild_id,member_id)
                     );
                     """)
+    def create_config():
+        conn, c = db()
+        c.execute("""
+                    create table if not exists config (
+                    guild_id integer primary key,
+                    birthday_message text
+                    );
+                    """)
+    def create_region_timezones():
+        conn, c = db()
+        c.execute("""
+                    create table if not exists region_timezones(
+                    guild_id integer primary key,
+                    region text,
+                    timezone text
+                    );
+                    """)
         conn.commit()
     create_birthdays()
+    create_config()
+    create_region_timezones()
 class Data:
     def next_birthday():
         conn, c = db()
@@ -113,6 +133,19 @@ class Data:
         Data.ensure_member_id(guild_id,member_id)
         c.execute("update birthdays set " + name + " = ? where guild_id = ? and member_id = ?", (value,guild_id,member_id))
         conn.commit()
+    def get_birthday_message(guild_id,member_id):
+        conn, c = db()
+        Data.ensure_member_id(guild_id,member_id)
+        c.execute("select birthday_message from birthdays where guild_id = ? and member_id = ?",(guild_id,member_id))
+        item = c.fetchone()
+        assert item is not None
+        (birthday_message,) = item
+        birthday_message = birthday_message.replace('<@>',f'<@{member_id}>')
+        return birthday_message
+    def set_all_birthday_messages(guild_id,message):
+        conn, c = db()
+        c.execute("update birthdays set birthday_message = ? where guild_id = ?",(message,guild_id))
+        conn.commit()
 def scary_test0():
     drop_table('birthdays')
     create_tables()
@@ -141,7 +174,8 @@ if __name__ == '__main__':
     create_tables()
     gid = 739681700539531285
     mid = 723072794665025597
-    conn, c = db()
+    # print(Data.get_birthday_message(gid,mid))
+    # conn, c = db()
     # c.execute('select next_birthday_utc from birthdays where next_birthday_utc is not null and is_verified = 1 order by datetime(next_birthday_utc);')
     # print(Data.all_birthdays(gid))
 

@@ -12,5 +12,4 @@ REGION_TZ = {
         'United States' : 'America/Chicago',
         }
 #
-TARGET_TIME = timedelta(hours=17)
 BIRTHDAY_CHANNEL = 'bot-shit'

@@ -129,17 +129,24 @@ async def timezone_update_loop():
 
 @tasks.loop(seconds=1)
 async def birthday_update_loop():
-    guild_id, member_id, next_birthday_utc = Data.next_birthday()
+    items = Data.next_birthday()
+    if items is None:
+        return
+    guild_id, member_id, next_birthday_utc = items
     if next_birthday_utc < datetime.utcnow():
         Data.set_elem(guild_id,member_id,'last_announced_utc',datetime.utcnow())
         guild = get(bot.guilds,id=guild_id)
         birthday_channel = get(guild.channels,name=config.BIRTHDAY_CHANNEL)
-        await birthday_channel.send(f"Happy birthday, <@{member_id}>!")
+        msg = Data.get_birthday_message(guild_id,member_id)
+        await birthday_channel.send(msg)
         update_timestamp(guild_id, member_id)
 
-
-
-
+@bot.command(aliases=['set_msg'],help='Set the birthday message of everyone to a string, must contain <@> which is syntax for user mention.')
+async def set_all_birthday_messages(ctx,*,message):
+    if '<@>' not in message:
+        await ctx.send("Warning: you didn't include <@> in the message and users will not be mentioned.")
+    await ctx.send(f"Birthday message set to: {message}")
+    Data.set_all_birthday_messages(ctx.guild.id,message)
 
 @bot.command(aliases=['set_tz'],help='Set the timezone of a member to specified value. If member is not given, changes your own timezone. Requires admin if member is not yourself.')
 async def set_timezone(ctx, timezone, member: discord.Member=None):
