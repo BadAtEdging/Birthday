@@ -11,5 +11,3 @@ REGION_TZ = {
         'South America' : 'America/Santarem',
         'United States' : 'America/Chicago',
         }
-#
-BIRTHDAY_CHANNEL = 'bot-shit'

@@ -103,7 +103,6 @@ def update_timestamp(guild_id,member_id):
 
 async def timezone_update(guild):
     Data.unset_roles(guild.id)
-    birthday_channel = get(guild.channels,name=config.BIRTHDAY_CHANNEL)
     verified_role = get(guild.roles,name='verified')
     if verified_role is not None:
         for member in verified_role.members:
@@ -112,7 +111,6 @@ async def timezone_update(guild):
         region_role = get(guild.roles,name=region)
         if region_role is not None:
             members = region_role.members
-            # await birthday_channel.send(f'{region_role} members in {guild}: {members}')
             for member in members:
                 Data.set_elem(guild.id,member.id,'region',region_role.name)
     for member in guild.members:
@@ -136,7 +134,7 @@ async def birthday_update_loop():
     if next_birthday_utc < datetime.utcnow():
         Data.set_elem(guild_id,member_id,'last_announced_utc',datetime.utcnow())
         guild = get(bot.guilds,id=guild_id)
-        birthday_channel = get(guild.channels,name=config.BIRTHDAY_CHANNEL)
+        birthday_channel = get(guild.channels,name=Data.get_birthday_channel(guild_id))
         msg = Data.get_birthday_message(guild_id,member_id)
         await birthday_channel.send(msg)
         update_timestamp(guild_id, member_id)
@@ -171,6 +169,15 @@ def local_time(target_tz):
     utc_dt = datetime.now(timezone.utc)
     local_dt = utc_dt.astimezone(target_tz)
     return local_dt
+
+@bot.command(help='Set birthday channel name.')
+async def set_birthday_channel(ctx,channel_name):
+    birthday_channel = get(ctx.guild.channels,name=channel_name)
+    if birthday_channel is None:
+        await ctx.send(f"Bad channel name: {channel_name}")
+    else:
+        Data.set_birthday_channel(ctx.guild.id,channel_name)
+        await ctx.send(f"Birthday channel name set to: {channel_name}")
 
 # @bot.command()
 # async def region_time(ctx, *, region):

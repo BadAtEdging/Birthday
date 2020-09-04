@@ -33,28 +33,31 @@ def create_tables():
                     primary key (guild_id,member_id)
                     );
                     """)
-    def create_config():
-        conn, c = db()
-        c.execute("""
-                    create table if not exists config (
-                    guild_id integer primary key,
-                    birthday_message text
-                    );
-                    """)
-    def create_region_timezones():
-        conn, c = db()
-        c.execute("""
-                    create table if not exists region_timezones(
-                    guild_id integer primary key,
-                    region text,
-                    timezone text
-                    );
-                    """)
         conn.commit()
+        c.execute("""create table if not exists config(
+                    guild_id integer primary key,
+                    birthday_channel text default 'bot-shit'
+                    );""")
     create_birthdays()
-    create_config()
-    create_region_timezones()
 class Data:
+    def ensure_guild(guild_id):
+        conn, c = db()
+        c.execute("select * from config where guild_id = ?",(guild_id,))
+        item = c.fetchone()
+        if item is None:
+            c.execute("insert into config (guild_id) values (?)",(guild_id,))
+        conn.commit()
+    def get_birthday_channel(guild_id):
+        Data.ensure_guild(guild_id)
+        conn, c = db()
+        c.execute("select birthday_channel from config where guild_id = ?",(guild_id,))
+        (item,) = c.fetchone()
+        return item
+    def set_birthday_channel(guild_id,channel_name):
+        Data.ensure_guild(guild_id)
+        conn, c = db()
+        c.execute("update config set birthday_channel = ? where guild_id = ?",(channel_name,guild_id))
+        conn.commit()
     def next_birthday():
         conn, c = db()
         c.execute("select guild_id, member_id, next_birthday_utc from birthdays where is_verified = 1 and next_birthday_utc is not null order by datetime(next_birthday_utc) limit 1")
@@ -171,6 +174,7 @@ def scary_test():
     scary_test0()
     scary_test1()
 if __name__ == '__main__':
+    # drop_table('config')
     create_tables()
     gid = 739681700539531285
     mid = 723072794665025597
