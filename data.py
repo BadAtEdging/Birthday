@@ -76,6 +76,13 @@ class Data:
         c.execute("select member_id,next_birthday_utc from birthdays where guild_id = ? and is_verified = 1 and next_birthday_utc is not null order by datetime(next_birthday_utc)",(guild_id,))
         items = c.fetchall()
         return items
+    def get_birthday(guild_id, member_id):
+        conn, c = db()
+        c.execute("select next_birthday_utc from birthdays where guild_id = ? and member_id = ? and is_verified = 1 and next_birthday_utc is not null order by datetime(next_birthday_utc)",(guild_id,member_id))
+        item = c.fetchone()
+        if item is not None:
+            (item,) = item
+        return item
     def get_last_announced_utc(guild_id,member_id):
         conn, c = db()
         c.execute("select last_announced_utc from birthdays where guild_id = ? and member_id = ?",(guild_id,member_id))

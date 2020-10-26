@@ -54,9 +54,10 @@ async def set_birthday(ctx, member: discord.Member=None, *, birthday_in_local_ti
         ctx.send("You need to be admin to change data of other people!")
         return
     any_birthday_local = parser.parse(birthday_in_local_time)
-    await ctx.send(f'Setting birthday of <@{member.id}> as {any_birthday_local}')
     Data.set_elem(ctx.guild.id,member.id,'any_birthday_local',any_birthday_local)
     update_timestamp(ctx.guild.id,member.id)
+    birthday = Data.get_birthday(ctx.guild.id,member.id)
+    await ctx.send(f'Setting birthday of <@{member.id}> as {any_birthday_local} (in {time_until(birthday)})')
 
 
 @bot.command(aliases=['list_bd'],help='List the birthdays of all users, starting from the closest birthday.')
