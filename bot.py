@@ -12,7 +12,12 @@ from datetime import *
 from time_util import time_until
 import sys
 
-bot = commands.Bot(command_prefix='>')
+intents = discord.Intents.default()
+intents.typing = False
+intents.presences = True
+intents.members = True
+
+bot = commands.Bot(command_prefix='>',intents=intents)
 
 @bot.event
 async def on_ready():
@@ -68,6 +73,7 @@ async def list_birthdays(ctx):
     for (member_id, birthday) in people:
         member = get(bot.get_all_members(),id=member_id)
         message.append(f'{member} on {birthday.date()} (in {time_until(birthday)})')
+    message = message[:21]
     await ctx.send('\n'.join(message))
 
 @bot.command(help='Delete all information of a member from database. Deletes your own information if username not specified. Requires admin if member is not yourself.')
